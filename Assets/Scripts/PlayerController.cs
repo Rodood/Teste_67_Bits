@@ -74,6 +74,9 @@ public class PlayerController : MonoBehaviour
             moveDir = Vector3.zero;
         }
 
+        if (moveDir == Vector3.zero && rb.angularVelocity.sqrMagnitude > 0.0001f)
+            rb.angularVelocity = Vector3.zero;
+
         // Convert world movement to local and update animator
         Vector3 localDir = transform.InverseTransformVector(moveDir);
         anim.SetFloat("Horizontal", localDir.x);
