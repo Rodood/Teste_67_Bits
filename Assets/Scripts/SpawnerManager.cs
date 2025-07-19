@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
+/// <summary>
+/// Script para gerenciar o spawn dos inimigos
+/// </summary>
 public class SpawnerManager : MonoBehaviour
 {
     public GameObject npcPrefab;
@@ -16,6 +20,7 @@ public class SpawnerManager : MonoBehaviour
 
     private void Start()
     {
+        // Cria todos os NPCs que serão usados logo no inicio do jogo para poder tentar otimizar eles, fazendo uma pool de objetos
         for (int i = 0; i < maxPoolSize; i++)
         {
             var go = Instantiate(npcPrefab, Vector3.zero, Quaternion.identity, transform);
@@ -24,6 +29,7 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
+    // Invoca o NPC na lista depois de um tempo
     private void Update()
     {
         timer += Time.deltaTime;
@@ -35,6 +41,7 @@ public class SpawnerManager : MonoBehaviour
         }
     }
 
+    // Chama um NPC da pool de objetos e coloca em um dos lugares aleatorios e inicializa ele
     private void SpawnFromPool()
     {
         Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
@@ -49,9 +56,22 @@ public class SpawnerManager : MonoBehaviour
         activeNPCs.Add(npc);
     }
 
+    // Força com que o NPC volte a pool caso necessário que force
+    public void ForceReturnToPool(NPCBehaviour npc)
+    {
+        activeNPCs.Add(npc);
+        NotifyNPCRemoved(npc);
+    }
+
+    // Coloca o NPC para ser removido, reseta ele e devolve a pool de objetos
     public void NotifyNPCRemoved(NPCBehaviour npc)
     {
-        if (!activeNPCs.Remove(npc)) return;
+        if (!activeNPCs.Remove(npc))
+        {
+            return;
+        }
+
+        if (npc.onPlayer) return;
 
         npc.Cleanup();
         npc.gameObject.SetActive(false);

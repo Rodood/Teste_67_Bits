@@ -2,6 +2,10 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Script que controla toda a movimentação e animação do personagem, incluindo a lógica
+/// de ataque dele.
+/// </summary>
 public class PlayerController : MonoBehaviour
 {
     public InputActionAsset inputActions;
@@ -18,6 +22,8 @@ public class PlayerController : MonoBehaviour
 
     public float detectionRadius = 1.5f;
     public LayerMask enemyLayer;
+    private float detectionInterval = 0.2f;
+    private float detectionTimer = 0f;
 
     bool isAttacking;
 
@@ -45,79 +51,81 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         moveAmount = moveAction.ReadValue<Vector2>();
-        EnemyDetection();
+        
+        // Gerencia o tempo desde a vez que detectou se tinha NPCs proximos para otimizar a quantidade de chamadas
+        detectionTimer += Time.deltaTime;
+        if (detectionTimer >= detectionInterval)
+        {
+            detectionTimer = 0f;
+            if (!isAttacking)
+                NPCDetection();
+        }
     }
 
     private void FixedUpdate()
     {
-        Walking();
+        if (isAttacking) return;
+            Walking();
     }
 
     private void Walking()
     {
-        if (isAttacking) return;
-
-        // Compute movement direction in world space
+        // Calcula a direção do movimento
         Vector3 moveDir = new Vector3(moveAmount.x, 0f, moveAmount.y).normalized;
 
-        // Rotate and move the character using physics
+        // Rotaciona o personagem usando fisica
         if (moveDir.sqrMagnitude > 0.1f)
         {
-            // Smooth rotation towards move direction
+            moveDir.Normalize();
             Quaternion targetRot = Quaternion.LookRotation(moveDir, Vector3.up);
-            rb.MoveRotation(Quaternion.Lerp(rb.rotation, targetRot, rotateSpeed * Time.deltaTime));
-
-            rb.MovePosition(rb.position + moveDir * walkSpeed * Time.deltaTime);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, rotateSpeed * Time.fixedDeltaTime));
+            rb.MovePosition(rb.position + moveDir * walkSpeed * Time.fixedDeltaTime);
         }
         else
         {
             moveDir = Vector3.zero;
         }
 
+        // Tive um problema com o colisor do personagem onde as vezes ele começava a rotacionar após encostar
+        // em um NPC, criei esse if para poder impedir que ficasse rotacionando.
         if (moveDir == Vector3.zero && rb.angularVelocity.sqrMagnitude > 0.0001f)
             rb.angularVelocity = Vector3.zero;
 
-        // Convert world movement to local and update animator
+        // Converte o movimento no mundo para movimento local e manda para a animação do personagem
         Vector3 localDir = transform.InverseTransformVector(moveDir);
         anim.SetFloat("Horizontal", localDir.x);
         anim.SetFloat("Vertical", localDir.z);
     }
 
+    // Ataca o NPC
     public void Attack(Transform target)
     {
         isAttacking = true;
-        Vector3 toTarget = (target.position - transform.position).normalized;
-        // keep player upright:
-        toTarget.y = 0;
-        transform.LookAt(transform.position + toTarget);
+        Vector3 toTarget = (target.position - transform.position);
+        toTarget.y = 0f;
 
-        rb.MoveRotation(transform.rotation);
+        // Rotaciona para encarar o NPC na hora do ataque
+        if (toTarget != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(toTarget);
+
         anim.SetTrigger("Attack");
 
-        target.gameObject.GetComponent<NPCBehaviour>().Knockout();
+        var npc = target.GetComponent<NPCBehaviour>();
+        if (npc != null)
+            npc.Knockout();
     }
 
+    // Permite o personagem voltar a andar após um evento na animação
     public void EndAttack()
     {
         isAttacking = false;
     }
 
-    void EnemyDetection()
+    // Detecta se há NPCs dentro do alcance do jogador
+    void NPCDetection()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, detectionRadius, enemyLayer);
-        if (hits.Length == 0 || isAttacking)
-            return;  // no enemies or already in an attack
-
-        // 2) Immediately pick the first one and attack
-        Transform enemy = hits[0].transform;
-        Attack(enemy);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red * 0.3f;
-        Gizmos.DrawSphere(transform.position, detectionRadius);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        if (hits.Length > 0)
+            Attack(hits[0].transform);
     }
 }

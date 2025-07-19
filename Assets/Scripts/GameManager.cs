@@ -1,6 +1,10 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Script que gerencia todas as variaveis como dinheiro e chamada de upgrades
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
@@ -13,6 +17,8 @@ public class GameManager : MonoBehaviour
     public GameObject shopUI;
 
     public StackController stack;
+
+    float deltaTime;
 
     private void Awake()
     {
@@ -27,10 +33,10 @@ public class GameManager : MonoBehaviour
         shopUI.SetActive(false);
     }
 
+    // Adiciona um valor aleatorio para o dinheiro atual do jogador
     public void UpdateMoney()
     {
-        int money = Random.Range(1, 5);
-
+        int money = Random.Range(1, 4);
         currentMoney += money;
 
         moneyText.text = currentMoney.ToString();
@@ -46,6 +52,7 @@ public class GameManager : MonoBehaviour
         shopUI.SetActive(false);
     }
 
+    // Compra a melhoria da pilha, atualiza o valor de venda da melhoria e muda para uma cor aleatoria o personagem do jogador
     public void BuyUpgrade()
     {
         if(currentMoney < sellAmount) return;
