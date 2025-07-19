@@ -1,5 +1,5 @@
-#Teste Técnico - 67 Bits
-#Vaga: Programador Unity Júnior
+Teste Técnico - 67 Bits
+Vaga: Programador Unity Júnior
 
 Este repositório foi criado para a realização do teste técnico pela 67 Bits.
 
