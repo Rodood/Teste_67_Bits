@@ -5,11 +5,11 @@ Este repositório foi criado para a realização do teste técnico pela 67 Bits.
 
 ### 📹 Demonstração em Vídeo
 Apresentei no vídeo a explicação detalhada do desenvolvimento, as soluções implementadas e as escolhas técnicas feitas durante a criação do projeto:
-🔗 Link para o vídeo no YouTube
+🔗 [Link para o vídeo no YouTube](https://youtu.be/wDHp5Mk6izw)
 
 ### 📲 APK para Testes
 Disponibilizo também o arquivo APK para que possam testar diretamente em dispositivos Android:
-🔗 Link para download da APK
+🔗 [Link para download da APK](https://drive.google.com/drive/folders/1WQzGHsZysyDu-gSklq78ALoVlvYqCcay?usp=drive_link)
 
 ### 🛠️ Tecnologias Utilizadas
 
